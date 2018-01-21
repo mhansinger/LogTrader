@@ -1,0 +1,9 @@
+# gitignore
+
+*.csv
+
+*.key
+
+kraken.key
+
+
