@@ -1,10 +1,11 @@
 import numpy as np
 import pandas as pd
-from Broker import Broker_virtual
+from Broker import  Broker_virtual_Poloniex
 from log_strategy import log_strategy
-#from Broker import Broker
+from poloStream import poloStream
 from set_input import set_input
-from krakenStream import krakenStream
+import requests
+
 
 import threading
 import time

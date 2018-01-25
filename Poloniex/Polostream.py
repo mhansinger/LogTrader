@@ -1,92 +1,91 @@
-import sqlite3
+import pandas as pd
 import time
 import os.path
 import requests
+import copy
+import numpy as np
 
-
-class Polostream(object):
-    def __init__(self, pairs = ['BTC_ETH','BTC_LTC'], db='TEST.db'):
+class poloStream(object):
+    def __init__(self, url='https://poloniex.com/public?command=returnTicker', limit=100):
         '''
         Get % change from Poloniex
         '''
 
-        self.pairs = pairs
-        self.pairs.sort()
-        self.pair_vector = pairs[0] + ' REAL'
-        for p in range(1,len(pairs)):
-            self.pair_vector+=', '+ pairs[p] + ' REAL'
+        self.url = url
+        self.max_len = limit
+        #get a json data file
+        data = requests.get(self.url).json()
 
-        self.col_vector=pairs[0]
-        for p in range(1,len(pairs)):
-            self.col_vector+=', '+ pairs[p]
+        # checks out all BTC pairs at poloniex
+        self.BTC_PAIRS = []
+        for f in data:
+            if f[0:3] == 'BTC':
+                self.BTC_PAIRS.append(f)
 
-        self.col_vector = 'UNIX_Time, Date, '+self.col_vector
-        self.columns = 'UNIX_Time, Date, ' + self.pair_vector
-        self.url = 'https://poloniex.com/public?command=returnTicker'
-        self.path = db
+        self.BTC_PAIRS.sort()
+        self.columns = copy.copy(self.BTC_PAIRS)
+        self.columns.insert(0,'Date')
+        self.columns.insert(0,'Unixtime')
 
-        # checks if the table in the database is already existing, otherwise creates a table
-        if (os.path.exists(self.path)):
-            print('Open table')
-            conn = sqlite3.connect(self.path)
-            c = conn.cursor()
-            percent_string = 'CREATE TABLE IF NOT EXISTS BTC_PAIRS_PERCENT (UNIX_Time INT, Date TEXT,'+self.pair_vector+')'
-            price_string = 'CREATE TABLE IF NOT EXISTS BTC_PAIRS_PRICE (UNIX_Time INT, Date TEXT,' + self.pair_vector + ')'
-            volume_string = 'CREATE TABLE IF NOT EXISTS BTC_PAIRS_VOLUME (UNIX_Time INT, Date TEXT,' + self.pair_vector + ')'
-            #print(percent_string)
-            #print(price_string)
-            c.execute(percent_string)
-            c.execute(price_string)
-            c.execute(volume_string)
-            conn.commit()
-            conn.close()
-        else:
-            print("create your data base first!")
+        price = []
+        volume = []
+
+        for idx, pair in enumerate(self.BTC_PAIRS):
+            data_coin = data[pair]
+            price.append(float(data_coin['last']))
+            volume.append(float(data_coin['baseVolume']))
+
+        date = time.strftime("%m.%d.%y_%H:%M:%S", time.localtime())
+        unixtime = int(time.time())
+
+        price.insert(0,date)
+        volume.insert(0,date)
+        price.insert(0,unixtime)
+        volume.insert(0,unixtime)
+        self.priceHistory = pd.DataFrame([price], columns=self.columns)
+        self.volumeHistory = pd.DataFrame([volume], columns=self.columns)
+        self.logReturnHistory = pd.DataFrame([np.zeros(len(volume))], columns=self.columns)
 
     def getTicker(self):
         # get the Data from poloniex
         data = requests.get(self.url).json()
         return data
 
-    def updateDB(self):
-        data_all = self.getTicker()
-        conn = sqlite3.connect(self.path)
-        c = conn.cursor()
-        percent_vec=''
-        price_vec = ''
-        volume_vec =''
-        for idx, pair in enumerate(self.pairs):
-            data_coin = data_all[pair]
-            percent = data_coin['percentChange']
-            price = data_coin['last']
-            volume = data_coin['baseVolume']
-
-            if idx < len(self.pairs)-1:
-                percent_vec +=percent+', '
-                price_vec +=price+', '
-                volume_vec +=volume+', '
-            else:
-                percent_vec +=percent
-                price_vec +=price
-                volume_vec += volume
+    def updateHistory(self):
+        # updates the market history
+        data = self.getTicker()
+        price = []
+        volume = []
+        for idx, pair in enumerate(self.BTC_PAIRS):
+            data_coin = data[pair]
+            price.append(float(data_coin['last']))
+            volume.append(float(data_coin['baseVolume']))
 
         date = time.strftime("%m.%d.%y_%H:%M:%S", time.localtime())
         unixtime = int(time.time())
 
-        # connect to DB
-        insert_percent = "INSERT INTO BTC_PAIRS_PERCENT (" + self.col_vector + ") " + " VALUES (" + str(
-                unixtime) + ", '" + str(date)+ "' ," + percent_vec + ")"
-        insert_price = "INSERT INTO BTC_PAIRS_PRICE (" + self.col_vector + ") " + " VALUES (" + str(
-                unixtime) + ", '" + str(date)+ "' ," + price_vec + ")"
-        insert_volume = "INSERT INTO BTC_PAIRS_VOLUME (" + self.col_vector + ") " + " VALUES (" + str(
-                unixtime) + ", '" + str(date)+ "' ," + volume_vec + ")"
+        price.insert(0,date)
+        volume.insert(0,date)
+        price.insert(0,unixtime)
+        volume.insert(0,unixtime)
+        thisPrice = pd.DataFrame([price], columns=self.columns)
+        thisVolume = pd.DataFrame([volume], columns=self.columns)
 
-        #print(insert_percent)
-        #print(insert_price)
-        c.execute(insert_percent)
-        c.execute(insert_price)
-        c.execute(insert_volume)
-        conn.commit()
-        print('Update the data base at ' + str(date))
-        conn.close()
+        self.priceHistory=self.priceHistory.append(thisPrice,ignore_index=True)
+        self.volumeHistory=self.volumeHistory.append(thisVolume,ignore_index=True)
+
+        #dummy
+        thislogRet = pd.DataFrame([volume], columns=self.columns)
+        for p in self.BTC_PAIRS:
+            # ptc_change[p] = price[p].ptc_change()
+            thislogRet[p] = np.log(self.priceHistory[p].iloc[-1]) - np.log(self.priceHistory[p].shift(-2))
+
+        thislogRet = thislogRet.fillna(0)
+        self.logReturnHistory = self.logReturnHistory.append(thislogRet)
+
+        # cut the data set if it gets to long
+        if len(self.priceHistory) > self.max_len:
+            self.volumeHistory = self.volumeHistory[-self.max_len:-1]
+            self.priceHistory = self.priceHistory[-self.max_len:-1]
+            self.logReturnHistory = self.logReturnHistory[-self.max_len:-1]
 

@@ -36,7 +36,7 @@ class Broker_base(ABC):
         self.column_names = []
         self.lastbuy = 0
         self.lastsell = 0
-        super(Broker_base,self).init__()
+        super(Broker_base,self).__init__()
 
     ##############################
     # Broker Methods for all
@@ -919,11 +919,12 @@ class Broker_virtual_Poloniex(Broker_base):
         print(self.pair)
 
     def initialize(self):
-        self.column_names = ['Time stamp', self.asset1, self.asset2, self.asset1+' shares', 'costs', self.asset1+' price']
+        self.column_names = ['Time stamp', self.asset1, self.asset2, self.asset1+' shares',  'Altcoin price','Pair']
         self.balance_df = pd.DataFrame([np.zeros(len(self.column_names))], columns= self.column_names)
         self.balance_df['Time stamp'] = self.getTime()
         self.balance_df[self.asset2] = self.invest
-        self.balance_df[self.asset1+' price'] = self.asset_market_bid()
+        self.balance_df['Altcoin price'] = self.asset_market_bid()
+        self.balance_df['Pair'] = self.pair
 
         print(self.balance_df)
 
@@ -949,7 +950,7 @@ class Broker_virtual_Poloniex(Broker_base):
             # update time
             time = self.getTime()
 
-            balance_update_vec = [[time, new_XETH, new_eur_fund, new_shares, current_costs, asset_ask ]]
+            balance_update_vec = [[time, new_XETH, new_eur_fund, new_shares,  asset_ask, self.pair ]]
             balance_update_df = pd.DataFrame(balance_update_vec, columns=self.column_names)
             self.balance_df = self.balance_df.append(balance_update_df)
 
@@ -991,7 +992,7 @@ class Broker_virtual_Poloniex(Broker_base):
             # update time
             time = self.getTime()
 
-            balance_update_vec = [[time, new_XETH, new_eur_fund, new_shares, current_costs, asset_bid]]
+            balance_update_vec = [[time, new_XETH, new_eur_fund, new_shares, asset_bid, self.pair]]
             balance_update_df = pd.DataFrame(balance_update_vec, columns=self.column_names)
             self.balance_df = self.balance_df.append(balance_update_df)
 
@@ -1024,13 +1025,12 @@ class Broker_virtual_Poloniex(Broker_base):
         new_shares = balance_np[-1,3]
         new_assets = new_shares*market_price
         new_eur_fund = balance_np[-1,2]
-        current_costs = 0
         #
         # update time
         time = self.getTime()
         #
         # old is same as new
-        balance_update_vec = [[time, new_assets, new_eur_fund, new_shares, current_costs, market_price]]
+        balance_update_vec = [[time, new_assets, new_eur_fund, new_shares, market_price, self.pair]]
         balance_update_df = pd.DataFrame(balance_update_vec, columns=self.column_names)
         self.balance_df = self.balance_df.append(balance_update_df)
 
@@ -1057,6 +1057,10 @@ class Broker_virtual_Poloniex(Broker_base):
     def market_price(self):
         data = requests.get(self.url).json()
         return round(float(data[self.pair]['last']), 7)
+
+    # new one for this kind of trader
+    def setPair(self,pair):
+        self.pair = pair
 
     def get_asset2_balance(self):
         # from abstract one

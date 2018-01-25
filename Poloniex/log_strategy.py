@@ -22,10 +22,12 @@ class log_strategy(object):
         self.Broker = broker        # object, to be instantialized outside
         self.myinput = myinput      # object, to be instantialized outside
         self.buytime =0
+
         try:
             self.minDrop = myinput.minDrop
             self.minGain = myinput.minGain
             self.exittime = myinput.exittime
+            self.minVolume = myinput.minVolume
         except:
             print('Check your input parameters!')
 
@@ -33,24 +35,31 @@ class log_strategy(object):
         self.Broker.initialize()
 
     def marketScanner(self):
-
-        # get last buy price
-        # ... hier noch nicht!
-        #lastbuy = self.Broker.lastbuy
-
+        # this is the core module of the trader
         #######################################
         # get market data and log return!
         self.stream.updateHistory()
-        thisLogReturn = self.stream.marketHistory['LogReturn'].iloc[-1]   # current log return
-        thisMarketPrice = self.stream.marketHistory['Price'].iloc[-1]
-        #######################################
 
-        if thisLogReturn < self.minDrop and self.Broker.asset_status is False and self.Broker.get_broker_status() is False:
+        # now find the maximum drop in the data set
+        thisMaxDrop = self.stream.logReturnHistory.iloc[-1, 2:-1].min()
+        thisMaxDropCoin = self.stream.logReturnHistory.iloc[-1, 2:-1].idxmin()
+        thisMaxVolume = self.stream.volumeHistory[thisMaxDropCoin].iloc[-1]
+
+        #######################################
+        # check the criteria required to buy
+        if thisMaxDrop < self.minDrop and thisMaxVolume>self.minVolume and self.Broker.asset_status is False \
+                and self.Broker.get_broker_status() is False:
             # buys if we are short and criteria is fulfilled
+
+            # hand over the coin pair
+            self.Broker.setPair(thisMaxDropCoin)
+
             self.Broker.buy_order()
             self.buytime = int(time.time())
+            # store the coin we bought
             print('go long')
-            print('log Return: ', thisLogReturn)
+            print('Buy: ',self.Broker.pair)
+            print('log Return: ', thisMaxDrop)
             print('bought in at: ', self.Broker.lastbuy)
             print(' ')
 
@@ -58,17 +67,22 @@ class log_strategy(object):
             thisTime = int(time.time())
             # we are now in the market and check if we should sell!
             # --> last buy has to be checked from csv maybe... !!
+            thisMarketPrice = self.stream.priceHistory[self.Broker.pair].iloc[-1]
+
             if thisMarketPrice >= (1+self.minGain)*self.Broker.lastbuy:
+                # hand over the coin pair
                 self.Broker.sell_order()
                 print('go short')
+                print('Sell: ', self.Broker.pair)
                 print('sold at: ', self.Broker.lastsell)
-                print('Reward: ', (self.Broker.lastsell-self.Broker.lastbuy)/self.Broker.lastsell)
+                print('Gain: ', (self.Broker.lastsell-self.Broker.lastbuy)/self.Broker.lastsell)
                 print(' ')
             elif (thisTime-self.buytime)/60. > self.exittime:
+                # hand over the coin pair
                 self.Broker.sell_order()
                 print('Emergency exit!')
                 print('sold at: ', self.Broker.lastsell)
-                print('Reward: ', (self.Broker.lastsell - self.Broker.lastbuy) / self.Broker.lastsell)
+                print('Gain: ', (self.Broker.lastsell - self.Broker.lastbuy) / self.Broker.lastsell)
                 print(' ')
             else:
                 self.Broker.idle()

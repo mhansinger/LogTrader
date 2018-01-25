@@ -7,16 +7,17 @@ class set_input():
 
         @author: mhansinger
     '''
-    def __init__(self, asset1='XETH', asset2='XXBT',investment=100.0, fee=0.0016, minDrop=-0.016, minGain=0.016, exittime=200):
+    def __init__(self, asset1='ETH', asset2='BTC',investment=100.0, fee=0.0016, minDrop=-0.016, minGain=0.016, exittime=200, minVolume =150):
         '''
 
-        :param asset1:
+        :param asset1:      Check which exchange you are using
         :param asset2:
         :param investment:  For dry run, the initial investment
         :param fee:         Trading fee, for dry run
         :param minDrop:     drop of log return in time series, as criteria to issue an order
         :param minGain:     expected minimum gain per order
         :param exittime:    if minGain cannot be achieved the market will be left after xy minutes
+        :param minVolume:   required minimum trading volume
         '''
 
         self.fee = fee
@@ -27,6 +28,7 @@ class set_input():
         self.minDrop = minDrop
         self.minGain = minGain
         self.exittime = exittime
+        self.minVolume = minVolume
         try:
             assert self.minDrop < 0.
         except AssertionError:
