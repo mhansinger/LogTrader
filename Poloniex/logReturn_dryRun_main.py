@@ -20,6 +20,7 @@ POLO_stream.updateHistory()
 
 POLO_trade = log_strategy(POLO_input,POLO_broker,POLO_stream)
 
+# me sure to set correct interval according to minDrop and minGain
 def run_trader(interval=600):
     try:
         POLO_trade.marketScanner()
