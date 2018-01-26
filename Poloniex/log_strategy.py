@@ -74,7 +74,7 @@ class log_strategy(object):
             # --> last buy has to be checked from csv maybe... !!
             thisMarketPrice = self.stream.priceHistory[self.Broker.pair].iloc[-1]
 
-            if thisMarketPrice >= (1+self.minGain)*self.Broker.lastbuy:
+            if thisMarketPrice >= (1.0+self.minGain)*self.Broker.lastbuy:
                 # hand over the coin pair
                 self.Broker.sell_order()
                 print('go short')
