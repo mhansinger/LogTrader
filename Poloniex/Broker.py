@@ -928,6 +928,12 @@ class Broker_virtual_Poloniex(Broker_base):
 
         print(self.balance_df)
 
+    # different from base clase
+    def writeCSV(self,df):
+        # write data to csv
+        filename = 'Coins_balance.csv'
+        pd.DataFrame.to_csv(df,filename)
+
     def buy_order(self):
         self.broker_status = True
 

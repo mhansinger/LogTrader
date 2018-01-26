@@ -45,6 +45,11 @@ class log_strategy(object):
         thisMaxDropCoin = self.stream.logReturnHistory.iloc[-1, 2:-1].idxmin()
         thisMaxVolume = self.stream.volumeHistory[thisMaxDropCoin].iloc[-1]
 
+        print('MaxDrop:', thisMaxDrop)
+        print('Coin: ',thisMaxDropCoin)
+        print('Volume: ',thisMaxVolume)
+        print('\n')
+
         #######################################
         # check the criteria required to buy
         if thisMaxDrop < self.minDrop and thisMaxVolume>self.minVolume and self.Broker.asset_status is False \
