@@ -40,14 +40,20 @@ class log_strategy(object):
         # get market data and log return!
         self.stream.updateHistory()
 
-        # now find the maximum drop in the data set
-        thisMaxDrop = self.stream.logReturnHistory.iloc[-1, 2:-1].min()
-        thisMaxDropCoin = self.stream.logReturnHistory.iloc[-1, 2:-1].idxmin()
+        # NEW!!!
+        # find first relevant Coins which fulfil VOL criteria, then check for drop
+        volList = []
+        for loc, coin in enumerate(self.stream.BTC_PAIRS):
+            if self.stream.volumeHistory[coin].iloc[-1] > self.minVolume:
+                volList.append(coin)
+
+        thisMaxDrop = self.stream.logReturnHistory[volList].iloc[-1].min()
+        thisMaxDropCoin = self.stream.logReturnHistory[volList].iloc[-1].idxmin()
         thisMaxVolume = self.stream.volumeHistory[thisMaxDropCoin].iloc[-1]
 
         print('MaxDrop:', thisMaxDrop)
         print('Coin: ',thisMaxDropCoin)
-        print('Volume: ',thisMaxVolume)
+        #print('Volume: ',thisMaxVolume)
         print('\n')
 
         #######################################
