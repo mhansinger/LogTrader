@@ -1544,7 +1544,7 @@ class Broker_virtual_Bittrex(Broker_base):
             if data_all['result'][i]['MarketName'] == self.pair:
                 thisData = data_all['result'][i]
                 break
-        return round(float(thisData['Bid']), 7)
+        return round(float(thisData['Bid']), 9)
 
     def asset_market_ask(self):
         data_all = requests.get(self.url).json()
@@ -1552,7 +1552,7 @@ class Broker_virtual_Bittrex(Broker_base):
             if data_all['result'][i]['MarketName'] == self.pair:
                 thisData = data_all['result'][i]
                 break
-        return round(float(thisData['Ask']), 7)
+        return round(float(thisData['Ask']), 9)
 
     def market_price(self):
         data_all = requests.get(self.url).json()
@@ -1560,7 +1560,7 @@ class Broker_virtual_Bittrex(Broker_base):
             if data_all['result'][i]['MarketName'] == self.pair:
                 thisData = data_all['result'][i]
                 break
-        return round(float(thisData['Last']), 7)
+        return round(float(thisData['Last']), 9)
 
     # new one for this kind of trader
     def setPair(self,pair):

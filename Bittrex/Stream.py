@@ -9,13 +9,13 @@ class bittrexStream(object):
     '''
     To stream the bittrex market data while trader is running
     '''
-    def __init__(self, url='https://bittrex.com/api/v1.1/public/getmarketsummaries', limit=100):
+    def __init__(self, url='https://bittrex.com/api/v1.1/public/getmarketsummaries', limit=40):
         '''
         Get % change from bittrex
         '''
         self.url = url
         self.max_len = limit
-        self.__shift = -1
+        self.__shift = 1
 
         #get a json data file
         data = requests.get(self.url).json()['result']
@@ -76,17 +76,15 @@ class bittrexStream(object):
         thisPrice = pd.DataFrame([price], columns=self.columns)
         thisVolume = pd.DataFrame([volume], columns=self.columns)
 
-        self.priceHistory=self.priceHistory.append(thisPrice,ignore_index=True)
-        self.volumeHistory=self.volumeHistory.append(thisVolume,ignore_index=True)
+        self.priceHistory = self.priceHistory.append(thisPrice,ignore_index=True)
+        self.volumeHistory = self.volumeHistory.append(thisVolume,ignore_index=True)
 
-        #dummy
-        thislogRet = pd.DataFrame([volume], columns=self.columns)
-        for p in self.BTC_PAIRS:
-            # ptc_change[p] = price[p].ptc_change()
-            thislogRet[p] = np.log(self.priceHistory[p].iloc[-1]) - np.log(self.priceHistory[p].shift(self.__shift))
-
-        thislogRet = thislogRet.fillna(0)
-        self.logReturnHistory = self.logReturnHistory.append(thislogRet)
+        # compute the log return for every coin pair.
+        new_return = np.log(self.priceHistory[self.BTC_PAIRS].values) \
+                     - np.log(self.priceHistory[self.BTC_PAIRS].shift(self.__shift).values)
+        self.logReturnHistory = pd.DataFrame(new_return,columns = self.BTC_PAIRS)
+        self.logReturnHistory.insert(0,'Date',self.priceHistory['Date'].values)
+        self.logReturnHistory.insert(0,'Unixtime',self.priceHistory['Unixtime'].values)
 
         # cut the data set if it gets to long
         if len(self.priceHistory) > self.max_len:
@@ -96,8 +94,8 @@ class bittrexStream(object):
 
     def setShift(self,shift):
         try:
-            assert shift < 0
+            assert shift > 0
             assert type(shift) == int
         except AssertionError:
-            print('Value must be smaller 0 and INT')
+            print('Value must be bigger 0 and INT')
         self.__shift = shift
