@@ -1,6 +1,6 @@
 
 import numpy as np
-import threading
+
 import time
 from datetime import datetime
 import sys
@@ -41,7 +41,7 @@ class log_strategy(object):
         self.stream.updateHistory()
 
         # NEW!!!
-        # find first relevant Coins which fulfil VOL criteria, then check for drop
+        # find first relevant Coins which fulfil VOL criteria, then check for drop in log return
         volList = []
         for loc, coin in enumerate(self.stream.BTC_PAIRS):
             if self.stream.volumeHistory[coin].iloc[-1] > self.minVolume:
@@ -53,7 +53,7 @@ class log_strategy(object):
 
         print('MaxDrop:', thisMaxDrop)
         print('Coin: ',thisMaxDropCoin)
-        #print('Volume: ',thisMaxVolume)
+        print('Volume: ',thisMaxVolume)
         print('\n')
 
         #######################################
