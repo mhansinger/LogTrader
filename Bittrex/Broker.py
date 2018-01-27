@@ -1402,6 +1402,7 @@ class Broker_virtual_Bittrex(Broker_base):
         self.pair = self.asset2+'-'+self.asset1
         print('This is the virtual broker for bittrex.')
         print('Pairs are written as: ',self.pair)
+        print(' ')
 
     def initialize(self):
         self.column_names = ['Time stamp', self.asset1, self.asset2, self.asset1+' shares',  'Altcoin price','Pair']
