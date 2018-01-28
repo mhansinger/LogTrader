@@ -1440,14 +1440,14 @@ class Broker_virtual_Bittrex(Broker_base):
             except AttributeError:
                 print('Broker muss noch initialisiert werden!')
 
-            current_eur_funds = balance_np[-1, 2] * 0.999999
+            current_eur_funds = self.balance_df[self.asset2].iloc[-1] * 0.999999
             current_costs = current_eur_funds * self.fee
 
             asset_ask = self.asset_market_ask()
 
             new_shares = (current_eur_funds - current_costs) / asset_ask
             new_XETH = new_shares * asset_ask
-            new_eur_fund = balance_np[-1, 2] - current_eur_funds
+            new_eur_fund = self.balance_df[self.asset2].iloc[-1] - current_eur_funds
 
             # update time
             time = self.getTime()
@@ -1483,13 +1483,13 @@ class Broker_virtual_Bittrex(Broker_base):
                 print('Broker muss noch initialisiert werden!')
 
             asset_bid = self.asset_market_bid()
-            current_shares = balance_np[-1, 3] * 0.999999
+            current_shares = self.balance_df['Altcoin shares'].iloc[-1]*0.999999 #balance_np[-1, 3] * 0.999999
             current_costs = current_shares * asset_bid * self.fee
 
             new_eur_fund = current_shares * asset_bid - current_costs
 
-            new_shares = balance_np[-1, 3] - current_shares  # --> sollte gegen null gehen
-            new_XETH = new_shares * asset_bid
+            new_shares = self.balance_df['Altcoin shares'].iloc[-1] - current_shares  # --> sollte gegen null gehen
+            #new_XETH = new_shares * asset_bid
 
             # update time
             time = self.getTime()
@@ -1524,9 +1524,9 @@ class Broker_virtual_Bittrex(Broker_base):
         elif self.asset_status is False:
             market_price = self.asset_market_bid()
         #
-        new_shares = balance_np[-1,3]
-        new_assets = new_shares*market_price
-        new_eur_fund = balance_np[-1,2]
+        new_shares = self.balance_df['Altcoin shares'].iloc[-1]
+        #new_assets = new_shares*market_price
+        new_eur_fund = self.balance_df[self.asset2].iloc[-1] #balance_np[-1,2]
         #
         # update time
         time = self.getTime()
