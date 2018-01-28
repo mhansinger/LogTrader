@@ -24,6 +24,7 @@ class log_strategy(object):
 
         try:
             self.Telepot_engine = Telepot_engine()
+            self.Telepot_engine.alive()
             self.active_engine = True
         except:
             print('No Telegram engine activated')

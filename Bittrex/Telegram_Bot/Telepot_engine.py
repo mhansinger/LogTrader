@@ -50,6 +50,17 @@ class Telepot_engine(object):
             except telepot.exception.BotWasBlockedError:
                 self.users.remove(user)
 
+
+    def alive(self):
+        self.bot = telepot.Bot(API_TOKEN)
+        self.users = self.get_users()
+        for user in self.users:
+            try:
+                self.bot.sendMessage(user,'I am alive now and ready to trade!')
+            except telepot.exception.BotWasBlockedError:
+                self.users.remove(user)
+
+
     #def write_users(self,user_list):
     #    with open("Telegram_Bot/users_bot.txt", 'w') as users_file:
     #        users_file.write("\n".join([str(uid) for uid in user_list]))
