@@ -2,8 +2,16 @@
 
 *.csv
 
-*.key
+*key*
+
+TOKEN*
+
+TOKEN_key.py
 
 kraken.key
+
+*.txt
+
+users_bot.txt
 
 __pycache__
