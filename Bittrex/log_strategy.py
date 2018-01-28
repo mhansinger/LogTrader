@@ -1,10 +1,9 @@
 
-import numpy as np
-
 import time
-from datetime import datetime
-import sys
-
+try:
+    from Telegram_Bot.Telepot_engine import Telepot_engine
+except:
+    pass
 
 # Überlegung die windows hier zu definieren??
 
@@ -22,6 +21,13 @@ class log_strategy(object):
         self.Broker = broker        # object, to be instantialized outside
         self.myinput = myinput      # object, to be instantialized outside
         self.buytime =0
+
+        try:
+            self.Telepot_engine = Telepot_engine()
+            self.active_engine = True
+        except:
+            print('No Telegram engine activated')
+            self.active_engine = False
 
         try:
             self.minDrop = myinput.minDrop
@@ -65,7 +71,9 @@ class log_strategy(object):
             # hand over the coin pair
             self.Broker.setPair(thisMaxDropCoin)
 
+            # Order set
             self.Broker.buy_order()
+
             self.buytime = int(time.time())
             # store the coin we bought
             print('go long')
@@ -74,6 +82,11 @@ class log_strategy(object):
             print('bought in at: ', self.Broker.lastbuy)
             print(' ')
 
+            # sends a telegram message
+            if self.active_engine:
+                invest = self.Broker.balance_df['BTC'].iloc[-2]
+                self.Telepot_engine(coin=thisMaxDropCoin, investment=invest, price= self.Broker.lastbuy,kind = 'BUY')
+
         elif self.Broker.asset_status and self.Broker.get_broker_status() is False:
             thisTime = int(time.time())
             # we are now in the market and check if we should sell!
@@ -81,13 +94,22 @@ class log_strategy(object):
             thisMarketPrice = self.stream.priceHistory[self.Broker.pair].iloc[-1]
 
             if thisMarketPrice >= (1.0+self.minGain)*self.Broker.lastbuy:
-                # hand over the coin pair
+
+                # Order set
                 self.Broker.sell_order()
+
                 print('go short')
                 print('Sell: ', self.Broker.pair)
                 print('sold at: ', self.Broker.lastsell)
                 print('Gain: ', (self.Broker.lastsell-self.Broker.lastbuy)/self.Broker.lastsell)
                 print(' ')
+
+                # sends a telegram message
+                if self.active_engine:
+                    invest = self.Broker.balance_df['BTC'].iloc[-1]
+                    self.Telepot_engine(coin=thisMaxDropCoin, investment=invest, price=self.Broker.lastsell, kind='SELL')
+
+
             elif (thisTime-self.buytime)/60. > self.exittime:
                 # hand over the coin pair
                 self.Broker.sell_order()
@@ -95,6 +117,12 @@ class log_strategy(object):
                 print('sold at: ', self.Broker.lastsell)
                 print('Gain: ', (self.Broker.lastsell - self.Broker.lastbuy) / self.Broker.lastsell)
                 print(' ')
+
+                # sends a telegram message
+                if self.active_engine:
+                    invest = self.Broker.balance_df['BTC'].iloc[-1]
+                    self.Telepot_engine(coin=thisMaxDropCoin, investment=invest, price=self.Broker.lastsell, kind='EXIT')
+
             else:
                 self.Broker.idle()
         else:

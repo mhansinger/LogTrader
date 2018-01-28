@@ -150,8 +150,6 @@ class Broker_virtual_kraken(Broker_base):
         self.balance_df[self.asset2] = self.invest
         self.balance_df[self.asset1+' price'] = self.asset_market_bid()
 
-        print(self.balance_df)
-
     def buy_order(self):
         self.broker_status = True
 
@@ -1405,13 +1403,23 @@ class Broker_virtual_Bittrex(Broker_base):
         print(' ')
 
     def initialize(self):
-        self.column_names = ['Time stamp', self.asset1, self.asset2, self.asset1+' shares',  'Altcoin price','Pair']
-        self.balance_df = pd.DataFrame([np.zeros(len(self.column_names))], columns= self.column_names)
-        self.balance_df['Time stamp'] = self.getTime()
-        self.balance_df[self.asset2] = self.invest
-        self.balance_df['Altcoin price'] = self.asset_market_bid()
-        self.balance_df['Pair'] = self.pair
-
+        # checks if there aready exists a balance sheet as .csv
+        if (os.path.exists('Coins_balance.csv')):
+            print('Coins_balance.csv exists \n')
+            old_df = pd.read_csv('Coins_balance.csv')
+            old_df = old_df.drop('Unnamed: 0',1)
+            self.column_names = ['Time stamp', self.asset1, self.asset2, self.asset1 + ' shares', 'Altcoin price',
+                                 'Pair']
+            self.balance_df = old_df
+        else:
+            #sets up a new, empty data frame for the balance
+            self.column_names = ['Time stamp', self.asset1, self.asset2, self.asset1 + ' shares', 'Altcoin price',
+                                 'Pair']
+            self.balance_df = pd.DataFrame([np.zeros(len(self.column_names))], columns=self.column_names)
+            self.balance_df['Time stamp'] = self.getTime()
+            self.balance_df[self.asset2] = self.invest
+            self.balance_df['Altcoin price'] = self.asset_market_bid()
+            self.balance_df['Pair'] = self.pair
         print(self.balance_df)
 
     # different from base clase

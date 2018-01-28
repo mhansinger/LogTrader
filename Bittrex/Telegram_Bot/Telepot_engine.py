@@ -1,7 +1,7 @@
 import telepot
 import time
-from telepot.loop import MessageLoop
-from TOKEN.key import API_TOKEN
+from Telegram_Bot.TOKEN_key import API_TOKEN
+import emoji
 
 class Telepot_engine(object):
     def __init__(self):
@@ -15,14 +15,46 @@ class Telepot_engine(object):
                 for line in users_file.readlines():
                     user_list.append(int(line))
         except FileNotFoundError:
-            pass
+            print('User ID File not found!')
         return user_list
 
-    def write_users(self,user_list):
-        with open("Telegram_Bot/users_bot.txt", 'w') as users_file:
-            users_file.write("\n".join([str(uid) for uid in user_list]))
 
+    def sendMsg(self, coin='', investment='', price='',kind = 'BUY'):
+        self.bot = telepot.Bot(API_TOKEN)
+        self.users = self.get_users()
 
+        if kind =='BUY':
+            message = 'I bought '+coin[4:]+' for '+price+'. \nYour investment was: '+investment
+        elif kind =='SELL':
+            message =  emoji.emojize(':rocket: Success! :money_bag: \n')+ \
+                       'I sold '+coin[4:]+' for '+price+'. \nYour investment increased: '+investment
+        elif kind == 'EXIT':
+            message =  emoji.emojize(':rocket: So sad! :cry: \n')+ \
+                       'I sold '+coin[4:]+' for '+price+'. \nYour investment decreased: '+investment
+        else:
+            message = 'Nothing to tell ...'
+
+        for user in self.users:
+            try:
+                self.bot.sendMessage(user, message)
+            except telepot.exception.BotWasBlockedError:
+                self.users.remove(user)
+
+    def individualMsg(self, message):
+        self.bot = telepot.Bot(API_TOKEN)
+        self.users = self.get_users()
+
+        for user in self.users:
+            try:
+                self.bot.sendMessage(user, message)
+            except telepot.exception.BotWasBlockedError:
+                self.users.remove(user)
+
+    #def write_users(self,user_list):
+    #    with open("Telegram_Bot/users_bot.txt", 'w') as users_file:
+    #        users_file.write("\n".join([str(uid) for uid in user_list]))
+
+    '''
     def send_message(self,msg):
         try:
             content_type, chat_type, chat_id = telepot.glance(msg)
@@ -56,3 +88,4 @@ class Telepot_engine(object):
                     bot.sendMessage(chat_id, 'Wie gut fühlt sich das an?', reply_markup=keyboard)
         except telepot.exception.BotWasBlockedError:
             pass
+    '''
