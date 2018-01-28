@@ -33,22 +33,27 @@ class bittrexStream(object):
 
         price = []
         volume = []
+        bid = []
 
         # write the first line for the histor
         for idx, pair in enumerate(self.BTC_PAIRS):
             data_coin = data[idx]
             price.append(float(data_coin['Last']))
             volume.append(float(data_coin['BaseVolume']))
+            bid.append(float(data_coin['Bid']))
 
         date = time.strftime("%m.%d.%y_%H:%M:%S", time.localtime())
         unixtime = int(time.time())
 
         price.insert(0,date)
         volume.insert(0,date)
+        bid.insert(0,date)
         price.insert(0,unixtime)
         volume.insert(0,unixtime)
+        bid.insert(0,unixtime)
         self.priceHistory = pd.DataFrame([price], columns=self.columns)
         self.volumeHistory = pd.DataFrame([volume], columns=self.columns)
+        self.bidHistory = pd.DataFrame([bid], columns=self.columns)
         self.logReturnHistory = pd.DataFrame([np.zeros(len(volume))], columns=self.columns)
 
     def getTicker(self):
@@ -61,25 +66,30 @@ class bittrexStream(object):
         data = self.getTicker()
         price = []
         volume = []
+        bid = []
         for idx, pair in enumerate(self.BTC_PAIRS):
             data_coin = data[idx]
             price.append(float(data_coin['Last']))
             volume.append(float(data_coin['BaseVolume']))
+            bid.append(float(data_coin['Bid']))
 
         date = time.strftime("%m.%d.%y_%H:%M:%S", time.localtime())
         unixtime = int(time.time())
 
         price.insert(0,date)
         volume.insert(0,date)
+        bid.insert(0, date)
         price.insert(0,unixtime)
         volume.insert(0,unixtime)
+        bid.insert(0, unixtime)
         thisPrice = pd.DataFrame([price], columns=self.columns)
         thisVolume = pd.DataFrame([volume], columns=self.columns)
+        thisBid = pd.DataFrame([bid], columns=self.columns)
 
         self.priceHistory = self.priceHistory.append(thisPrice,ignore_index=True)
         self.volumeHistory = self.volumeHistory.append(thisVolume,ignore_index=True)
 
-        # compute the log return for every coin pair.
+        # compute the log return of market price for every coin pair.
         new_return = np.log(self.priceHistory[self.BTC_PAIRS].values) \
                      - np.log(self.priceHistory[self.BTC_PAIRS].shift(self.__shift).values)
         self.logReturnHistory = pd.DataFrame(new_return,columns = self.BTC_PAIRS)
@@ -91,6 +101,7 @@ class bittrexStream(object):
             self.volumeHistory = self.volumeHistory[-self.max_len:-1]
             self.priceHistory = self.priceHistory[-self.max_len:-1]
             self.logReturnHistory = self.logReturnHistory[-self.max_len:-1]
+            self.bidHistory = self.bidHistory[-self.max_len:-1]
 
     def setShift(self,shift):
         try:

@@ -92,10 +92,10 @@ class log_strategy(object):
         elif self.Broker.asset_status and self.Broker.get_broker_status() is False:
             thisTime = int(time.time())
             # we are now in the market and check if we should sell!
-            # --> last buy has to be checked from csv maybe... !!
-            thisMarketPrice = self.stream.priceHistory[self.Broker.pair].iloc[-1]
+            # --> the bid price is here important as it should be sold 
+            thisBidPrice = self.stream.bidHistory[self.Broker.pair].iloc[-1]
 
-            if thisMarketPrice >= (1.0+self.minGain)*self.Broker.lastbuy:
+            if thisBidPrice >= (1.0+self.minGain)*self.Broker.lastbuy:
 
                 # Order set
                 self.Broker.sell_order()
