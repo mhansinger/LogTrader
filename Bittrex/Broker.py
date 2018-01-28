@@ -1408,19 +1408,21 @@ class Broker_virtual_Bittrex(Broker_base):
             print('Coins_balance.csv exists \n')
             old_df = pd.read_csv('Coins_balance.csv')
             old_df = old_df.drop('Unnamed: 0',1)
-            self.column_names = ['Time stamp', self.asset1, self.asset2, self.asset1 + ' shares', 'Altcoin price',
+            self.column_names = ['Time stamp', self.asset2, 'Altcoin shares', 'Altcoin market', 'Bid', 'Ask',
                                  'Pair']
             self.balance_df = old_df
         else:
             #sets up a new, empty data frame for the balance
-            self.column_names = ['Time stamp', self.asset1, self.asset2, self.asset1 + ' shares', 'Altcoin price',
+            self.column_names = ['Time stamp', self.asset2, 'Altcoin shares', 'Altcoin market', 'Bid', 'Ask',
                                  'Pair']
             self.balance_df = pd.DataFrame([np.zeros(len(self.column_names))], columns=self.column_names)
             self.balance_df['Time stamp'] = self.getTime()
             self.balance_df[self.asset2] = self.invest
-            self.balance_df['Altcoin price'] = self.asset_market_bid()
+            self.balance_df['Altcoin market'] = self.market_price()
+            self.balance_df['Bid'] = self.asset_market_bid()
+            self.balance_df['Ask'] = self.asset_market_ask()
             self.balance_df['Pair'] = self.pair
-        print(self.balance_df)
+        #print(self.balance_df)
 
     # different from base clase
     def writeCSV(self,df):
@@ -1450,7 +1452,7 @@ class Broker_virtual_Bittrex(Broker_base):
             # update time
             time = self.getTime()
 
-            balance_update_vec = [[time, new_XETH, new_eur_fund, new_shares,  asset_ask, self.pair ]]
+            balance_update_vec = [[time, new_eur_fund, new_shares,  self.market_price(), self.asset_market_bid(),self.asset_market_ask(),self.pair ]]
             balance_update_df = pd.DataFrame(balance_update_vec, columns=self.column_names)
             self.balance_df = self.balance_df.append(balance_update_df)
 
@@ -1492,7 +1494,7 @@ class Broker_virtual_Bittrex(Broker_base):
             # update time
             time = self.getTime()
 
-            balance_update_vec = [[time, new_XETH, new_eur_fund, new_shares, asset_bid, self.pair]]
+            balance_update_vec = [[time, new_eur_fund, new_shares, self.market_price(), self.asset_market_bid(),self.asset_market_ask(),self.pair]]
             balance_update_df = pd.DataFrame(balance_update_vec, columns=self.column_names)
             self.balance_df = self.balance_df.append(balance_update_df)
 
@@ -1530,7 +1532,7 @@ class Broker_virtual_Bittrex(Broker_base):
         time = self.getTime()
         #
         # old is same as new
-        balance_update_vec = [[time, new_assets, new_eur_fund, new_shares, market_price, self.pair]]
+        balance_update_vec = [[time, new_eur_fund, new_shares, self.market_price(), self.asset_market_bid(),self.asset_market_ask(),self.pair]]
         balance_update_df = pd.DataFrame(balance_update_vec, columns=self.column_names)
         self.balance_df = self.balance_df.append(balance_update_df)
 
