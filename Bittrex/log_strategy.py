@@ -123,7 +123,7 @@ class log_strategy(object):
                 # sends a telegram message
                 if self.active_engine:
                     invest = self.Broker.balance_df['BTC'].iloc[-1]
-                    self.Telepot_engine.sendMsg(coin=thisMaxDropCoin, investment=str(round(invest,5)), price=str(round(self.Broker.lastsell)), kind='EXIT')
+                    self.Telepot_engine.sendMsg(coin=thisMaxDropCoin, investment=str(round(invest,6)), price=str(round(self.Broker.lastsell,6)), kind='EXIT')
 
             else:
                 self.Broker.idle()

@@ -1,7 +1,7 @@
 import telepot
 import time
 from Telegram_Bot.TOKEN_key import API_TOKEN
-import emoji
+from pyemojify import emojify
 
 class Telepot_engine(object):
     def __init__(self):
@@ -24,15 +24,15 @@ class Telepot_engine(object):
         self.users = self.get_users()
 
         if kind =='BUY':
-            message = 'I bought '+coin[4:]+' for '+price+'. \nYour investment was: '+investment
+            message = emojify(':sparkles: I bought '+coin[4:]+' for '+price+'. \nYour investment was: '+investment + ':boom:')
         elif kind =='SELL':
-            message =  emoji.emojize(':rocket: Success! :money_bag: \n')+ \
-                       'I sold '+coin[4:]+' for '+price+'. \nYour investment increased: '+investment
+            message =  emojify(':boom: Success! :rocket: \n'+ \
+                       'I sold '+coin[4:]+' for '+price+'. \nYour investment increased: '+investment+' :money_bag:')
         elif kind == 'EXIT':
-            message =  emoji.emojize(':rocket: So sad! :cry: \n')+ \
-                       'I sold '+coin[4:]+' for '+price+'. \nYour investment decreased: '+investment
+            message =  emojify(':ghost: So sad! :cry: \n'+ \
+                       'I sold '+coin[4:]+' for '+price+'. :skull: \nYour investment decreased: '+investment +' :money_with_wings:')
         else:
-            message = 'Nothing to tell ...'
+            message = emojify(':iphone: Nothing to tell ...')
 
         for user in self.users:
             try:

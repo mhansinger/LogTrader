@@ -14,8 +14,8 @@ class bittrexStream(object):
         Get % change from bittrex
         '''
         self.url = url
-        self.max_len = limit
-        self.__shift = 1
+        self.max_len = int(limit)
+        self.__shift = int(1)
 
         #get a json data file
         data = requests.get(self.url).json()['result']
