@@ -24,7 +24,7 @@ class Telepot_engine(object):
         self.users = self.get_users()
 
         if kind =='BUY':
-            message = emojify(':sparkles: I bought '+coin[4:]+' for '+price+'. \nYour investment was: '+investment + ':boom:')
+            message = emojify(':sparkles: I bought '+coin[4:]+' for '+price+' :zap:. \nYour investment was: '+investment )
         elif kind =='SELL':
             message =  emojify(':boom: Success! :rocket: \n'+ \
                        'I sold '+coin[4:]+' for '+price+'. \nYour investment increased: '+investment+' :money_bag:')
@@ -56,7 +56,9 @@ class Telepot_engine(object):
         self.users = self.get_users()
         for user in self.users:
             try:
-                self.bot.sendMessage(user,'I am alive now and ready to trade!')
+                self.bot.sendMessage(user,emojify(':rocket: To the moon with MillionVanillion Trading! :snowman:'))
+                self.bot.sendPhoto(user,'http://assets.nydailynews.com/polopoly_fs/1.2930801.1483288897!/'+
+                                        'img/httpImage/image.jpg_gen/derivatives/article_750/germany-obit-milli-vanilli.jpg')
             except telepot.exception.BotWasBlockedError:
                 self.users.remove(user)
 
