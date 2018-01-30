@@ -71,7 +71,7 @@ class log_strategy(object):
             # buys if we are short and criteria is fulfilled
 
             # hand over the coin pair
-            self.Broker.setPair(thisMaxDropCoin)
+            self.Broker.setPair(self.__currentPair)
 
             # Order set
             self.Broker.buy_order()
@@ -87,7 +87,7 @@ class log_strategy(object):
             # sends a telegram message
             if self.active_engine:
                 invest = self.Broker.balance_df['BTC'].iloc[-2]
-                self.Telepot_engine.sendMsg(coin=thisMaxDropCoin, investment=str(round(invest,5)),
+                self.Telepot_engine.sendMsg(coin=self.__currentPair, investment=str(round(invest,5)),
                                             price= str(round(self.Broker.lastbuy,6)),kind = 'BUY')
 
         elif self.Broker.asset_status and self.Broker.get_broker_status() is False:
@@ -110,7 +110,7 @@ class log_strategy(object):
                 # sends a telegram message
                 if self.active_engine:
                     invest = self.Broker.balance_df['BTC'].iloc[-1]
-                    self.Telepot_engine.sendMsg(coin=thisMaxDropCoin, investment=str(round(invest,5)),
+                    self.Telepot_engine.sendMsg(coin=self.Broker.pair, investment=str(round(invest,5)),
                                                 price=str(round(self.Broker.lastsell,6)), kind='SELL')
 
 
@@ -125,7 +125,7 @@ class log_strategy(object):
                 # sends a telegram message
                 if self.active_engine:
                     invest = self.Broker.balance_df['BTC'].iloc[-1]
-                    self.Telepot_engine.sendMsg(coin=thisMaxDropCoin, investment=str(round(invest,6)),
+                    self.Telepot_engine.sendMsg(coin=self.Broker.pair, investment=str(round(invest,6)),
                                                 price=str(round(self.Broker.lastsell,6)), kind='EXIT')
 
             else:
