@@ -27,7 +27,7 @@ class Telepot_engine(object):
             message = emojify(':sparkles: I bought '+coin[4:]+' for '+price+' :zap:. \nYour investment was: '+investment )
         elif kind =='SELL':
             message =  emojify(':boom: Success! :rocket: \n'+ \
-                       'I sold '+coin[4:]+' for '+price+'. \nYour investment increased: '+investment+' :money_bag:')
+                       'I sold '+coin[4:]+' for '+price+'. \nYour investment increased: '+investment+' :moneybag:')
         elif kind == 'EXIT':
             message =  emojify(':ghost: So sad! :cry: \n'+ \
                        'I sold '+coin[4:]+' for '+price+'. :skull: \nYour investment decreased: '+investment +' :money_with_wings:')
