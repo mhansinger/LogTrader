@@ -27,14 +27,13 @@ class Telepot_engine(object):
                 message = emojify(':sparkles: I bought ' + coin[4:] + ' for ' + price + ' :zap:. \nYour investment was: ' + investment)
             elif kind == 'SELL':
                 message = emojify(':boom: Success! :rocket: \n' +
-                                  'I sold ' + coin[4:] + ' for ' + price + '. \nYour investment increased: ' + investment + ' :money_bag:')
+                                  'I sold ' + coin[4:] + ' for ' + price + '. \nYour investment increased: ' + investment + ' :moneybag:')
             elif kind == 'EXIT':
                 message = emojify(':ghost: So sad! :cry: \n' +
                                   'I sold ' + coin[4:] + ' for ' + price + '. :skull: \nYour investment decreased: ' + investment + ' :money_with_wings:')
             else:
                 message = emojify(':iphone: Nothing to tell ...')
 
-<<<<<<< HEAD
             for user in self.users:
                 try:
                     self.bot.sendMessage(user, message)
@@ -42,24 +41,6 @@ class Telepot_engine(object):
                     self.users.remove(user)
         except:
             pass
-=======
-        if kind =='BUY':
-            message = emojify(':sparkles: I bought '+coin[4:]+' for '+price+' :zap:. \nYour investment was: '+investment )
-        elif kind =='SELL':
-            message =  emojify(':boom: Success! :rocket: \n'+ \
-                       'I sold '+coin[4:]+' for '+price+'. \nYour investment increased: '+investment+' :moneybag:')
-        elif kind == 'EXIT':
-            message =  emojify(':ghost: So sad! :cry: \n'+ \
-                       'I sold '+coin[4:]+' for '+price+'. :skull: \nYour investment decreased: '+investment +' :money_with_wings:')
-        else:
-            message = emojify(':iphone: Nothing to tell ...')
-
-        for user in self.users:
-            try:
-                self.bot.sendMessage(user, message)
-            except telepot.exception.BotWasBlockedError:
-                self.users.remove(user)
->>>>>>> 573eccc6f1e93e36d7071eed55038e9f56447ad9
 
     def individualMsg(self, message):
         self.bot = telepot.Bot(API_TOKEN)
