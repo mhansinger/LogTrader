@@ -17,6 +17,9 @@ class bittrexStream(object):
         self.max_len = int(limit)
         self.__shift = int(1)
 
+        # small constant to add for log to be not 0
+        self.SMALL = 1e-15
+
         #get a json data file
         data = requests.get(self.url).json()['result']
 
@@ -103,11 +106,13 @@ class bittrexStream(object):
         self.askHistory = self.askHistory.append(thisAsk, ignore_index=True)
 
         # compute the log return of market price for every coin pair.
-        new_return = np.log(self.priceHistory[self.BTC_PAIRS].values) - \
-                     np.log(self.priceHistory[self.BTC_PAIRS].shift(self.__shift).values)
-        self.logReturnHistory = pd.DataFrame(new_return,columns = self.BTC_PAIRS)
-        self.logReturnHistory.insert(0,'Date',self.askHistory['Date'].values)
-        self.logReturnHistory.insert(0,'Unixtime',self.askHistory['Unixtime'].values)
+        #new_return \
+        self.logReturnHistory= np.log(self.askHistory[self.BTC_PAIRS] + self.SMALL) - \
+                     np.log(self.askHistory[self.BTC_PAIRS].shift(self.__shift) + self.SMALL)
+        #self.logReturnHistory = pd.DataFrame(new_return,columns = self.BTC_PAIRS)
+        self.logReturnHistory.insert(0,'Date', self.askHistory['Date'].values)
+        self.logReturnHistory.insert(0,'Unixtime', self.askHistory['Unixtime'].values)
+        self.logReturnHistory.fillna(0)
 
         # cut the data set if it gets to long
         if len(self.priceHistory) > self.max_len:

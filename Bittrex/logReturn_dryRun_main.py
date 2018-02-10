@@ -9,7 +9,7 @@ from datetime import datetime
 
 # set the input data with default values
 # adjust the windows to our time series!!!
-BITTREX_input = set_input(asset1='ETH', asset2='BTC', fee=0.002,  investment=100.0, minDrop=-0.001, minGain=0.00001, exittime=25, minVolume=150)
+BITTREX_input = set_input(asset1='ETH', asset2='BTC', fee=0.0025,  investment=100.0, minDrop=-0.03, minGain=0.01, exittime=200, minVolume=500, peak=0.011)
 BITTREX_stream = bittrexStream(limit=200)
 BITTREX_broker = Broker_virtual_Bittrex(BITTREX_input)
 #POLO_broker.initialize()

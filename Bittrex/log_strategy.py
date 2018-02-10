@@ -1,5 +1,6 @@
 
 import time
+import copy
 try:
     from Telegram_Bot.Telepot_engine import Telepot_engine
 except:
@@ -36,6 +37,8 @@ class log_strategy(object):
             self.minGain = myinput.minGain
             self.exittime = myinput.exittime
             self.minVolume = myinput.minVolume
+            self.peak = myinput.peak
+
         except:
             print('Check your input parameters!')
 
@@ -55,9 +58,11 @@ class log_strategy(object):
             if self.stream.volumeHistory[coin].iloc[-1] > self.minVolume:
                 volList.append(coin)
 
-        thisMaxDrop = self.stream.logReturnHistory[volList].iloc[-1].min()
-        thisMaxDropCoin = self.stream.logReturnHistory[volList].iloc[-1].idxmin()
-        thisMaxVolume = self.stream.volumeHistory[thisMaxDropCoin].iloc[-1]
+        #thisMaxDrop = self.stream.logReturnHistory[volList].iloc[-1].min()
+        #thisMaxDropCoin = self.stream.logReturnHistory[volList].iloc[-1].idxmin()
+        #thisMaxVolume = self.stream.volumeHistory[thisMaxDropCoin].iloc[-1]
+
+        thisMaxDrop, thisMaxDropCoin ,thisMaxVolume = self.peak_check( thisList=volList)
 
         print('MaxDrop:', thisMaxDrop)
         print('Coin: ',thisMaxDropCoin)
@@ -133,5 +138,16 @@ class log_strategy(object):
         else:
             self.Broker.idle()
 
-
+    def peak_check(self, thisList):
+        thisMaxDrop = self.stream.logReturnHistory[thisList].iloc[-1].min()
+        thisMaxDropCoin = self.stream.logReturnHistory[thisList].iloc[-1].idxmin()
+        thisMaxVolume = self.stream.volumeHistory[thisMaxDropCoin].iloc[-1]
+        if self.stream.logReturnHistory[thisMaxDropCoin].iloc[-30:-1].max() > self.peak and thisMaxDrop < self.minDrop:
+            # remove the 'bad' coin and run again the check
+            newList = copy.copy(thisList)
+            newList.remove(thisMaxDropCoin)
+            return self.peak_check(thisList=newList)
+        else:
+            # print(log_return[maxDropCoin].iloc[(i-60):i].max())
+            return thisMaxDrop, thisMaxDropCoin, thisMaxVolume
 

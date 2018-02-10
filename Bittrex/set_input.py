@@ -7,7 +7,7 @@ class set_input():
 
         @author: mhansinger
     '''
-    def __init__(self, asset1='ETH', asset2='BTC',investment=100.0, fee=0.002, minDrop=-0.06, minGain=0.03, exittime=200, minVolume =150):
+    def __init__(self, asset1='ETH', asset2='BTC',investment=100.0, fee=0.002, minDrop=-0.06, minGain=0.03, exittime=200, minVolume =150, peak=0.012):
         '''
 
         :param asset1:      Check which exchange you are using
@@ -29,6 +29,8 @@ class set_input():
         self.minGain = minGain
         self.exittime = exittime
         self.minVolume = minVolume
+        self.peak = peak
+
         try:
             assert self.minDrop < 0.
         except AssertionError:
