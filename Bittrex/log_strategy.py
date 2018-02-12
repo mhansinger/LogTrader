@@ -27,7 +27,7 @@ class log_strategy(object):
             self.Telepot_engine = Telepot_engine()
             self.Telepot_engine.alive()
             self.active_engine = True
-            print('Telegram engine is activated')
+            print('Telegram engine is activated!')
         except:
             print('No Telegram engine activated')
             self.active_engine = False
@@ -93,7 +93,7 @@ class log_strategy(object):
             if self.active_engine:
                 invest = self.Broker.balance_df['BTC'].iloc[-2]
                 self.Telepot_engine.sendMsg(coin=self.Broker.pair, investment=str(round(invest,5)),
-                                            price= str(round(self.Broker.lastbuy,6)),kind = 'BUY')
+                                            price= str(round(self.Broker.lastbuy,6)), kind = 'BUY')
 
         elif self.Broker.asset_status and self.Broker.get_broker_status() is False:
             thisTime = int(time.time())
@@ -118,7 +118,6 @@ class log_strategy(object):
                     self.Telepot_engine.sendMsg(coin=self.Broker.pair, investment=str(round(invest,5)),
                                                 price=str(round(self.Broker.lastsell,6)), kind='SELL')
 
-
             elif (thisTime-self.buytime)/60. > self.exittime:
                 # hand over the coin pair
                 self.Broker.sell_order()
@@ -142,8 +141,8 @@ class log_strategy(object):
         thisMaxDrop = self.stream.logReturnHistory[thisList].iloc[-1].min()
         thisMaxDropCoin = self.stream.logReturnHistory[thisList].iloc[-1].idxmin()
         thisMaxVolume = self.stream.volumeHistory[thisMaxDropCoin].iloc[-1]
-        if self.stream.logReturnHistory[thisMaxDropCoin].iloc[-30:-1].max() > self.peak and thisMaxDrop < self.minDrop:
-            # remove the 'bad' coin and run again the check
+        if self.stream.logReturnHistory[thisMaxDropCoin].iloc[-10:-1].max() > self.peak and thisMaxDrop < self.minDrop:
+            # remove the 'bad' coin and run again the check (recursive)
             newList = copy.copy(thisList)
             newList.remove(thisMaxDropCoin)
             return self.peak_check(thisList=newList)

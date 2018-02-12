@@ -58,7 +58,7 @@ class Telepot_engine(object):
         self.users = self.get_users()
         for user in self.users:
             try:
-                self.bot.sendMessage(user,emojify(':rocket: To the moon with MillionVanillion Trading! :snowman:'))
+                #self.bot.sendMessage(user,emojify(':rocket: To the moon with MillionVanillion Trading! :snowman:'))
                 self.bot.sendPhoto(user,'http://assets.nydailynews.com/polopoly_fs/1.2930801.1483288897!/'+
                                         'img/httpImage/image.jpg_gen/derivatives/article_750/germany-obit-milli-vanilli.jpg')
             except telepot.exception.BotWasBlockedError:

@@ -106,10 +106,8 @@ class bittrexStream(object):
         self.askHistory = self.askHistory.append(thisAsk, ignore_index=True)
 
         # compute the log return of market price for every coin pair.
-        #new_return \
         self.logReturnHistory= np.log(self.askHistory[self.BTC_PAIRS] + self.SMALL) - \
                      np.log(self.askHistory[self.BTC_PAIRS].shift(self.__shift) + self.SMALL)
-        #self.logReturnHistory = pd.DataFrame(new_return,columns = self.BTC_PAIRS)
         self.logReturnHistory.insert(0,'Date', self.askHistory['Date'].values)
         self.logReturnHistory.insert(0,'Unixtime', self.askHistory['Unixtime'].values)
         self.logReturnHistory.fillna(0)
