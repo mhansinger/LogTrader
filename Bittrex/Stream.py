@@ -77,11 +77,19 @@ class bittrexStream(object):
         bid = []
         ask = []
         for idx, pair in enumerate(self.BTC_PAIRS):
-            data_coin = data[idx]
-            price.append(float(data_coin['Last']))
-            volume.append(float(data_coin['BaseVolume']))
-            bid.append(float(data_coin['Bid']))
-            ask.append(float(data_coin['Ask']))
+            try:
+                data_coin = data[idx]
+                price.append(float(data_coin['Last']))
+                volume.append(float(data_coin['BaseVolume']))
+                bid.append(float(data_coin['Bid']))
+                ask.append(float(data_coin['Ask']))
+            except:
+                print('Coin is not anymore in the Bittrex data')
+                price.append(0)
+                volume.append(0)
+                bid.append(0)
+                ask.append(0)
+                pass
 
         date = time.strftime("%m.%d.%y_%H:%M:%S", time.localtime())
         unixtime = int(time.time())

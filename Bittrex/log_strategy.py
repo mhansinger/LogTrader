@@ -55,13 +55,10 @@ class log_strategy(object):
         # find first relevant Coins which fulfil VOL criteria, then check for drop in log return
         volList = []
         for loc, coin in enumerate(self.stream.BTC_PAIRS):
-            if self.stream.volumeHistory[coin].iloc[-1] > self.minVolume:
+            if self.stream.volumeHistory[coin].iloc[-1] > self.minVolume and self.stream.priceHistory[coin].iloc[-1] > 0.0:
                 volList.append(coin)
 
-        #thisMaxDrop = self.stream.logReturnHistory[volList].iloc[-1].min()
-        #thisMaxDropCoin = self.stream.logReturnHistory[volList].iloc[-1].idxmin()
-        #thisMaxVolume = self.stream.volumeHistory[thisMaxDropCoin].iloc[-1]
-
+        # check for recent peaks in the history
         thisMaxDrop, thisMaxDropCoin ,thisMaxVolume = self.peak_check( thisList=volList)
 
         print('MaxDrop:', thisMaxDrop)
