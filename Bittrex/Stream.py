@@ -4,6 +4,7 @@ import os.path
 import requests
 import copy
 import numpy as np
+import time
 
 class bittrexStream(object):
     '''
@@ -66,7 +67,12 @@ class bittrexStream(object):
 
     def getTicker(self):
         # get the Data from bittrex
-        data = requests.get(self.url).json()['result']
+        try:
+            data = requests.get(self.url).json()['result']
+        except ValueError:
+            print('There was a ValueError in getTicker')
+            time.sleep(60)
+            return self.getTicker()
         return data
 
     def updateHistory(self):
