@@ -6,8 +6,6 @@ try:
 except:
     pass
 
-# Überlegung die windows hier zu definieren??
-
 '''
 this ist the strategy class for the log return method
 
@@ -21,7 +19,7 @@ class log_strategy(object):
         self.stream = stream        # object, to be instantialized outside
         self.Broker = broker        # object, to be instantialized outside
         self.myinput = myinput      # object, to be instantialized outside
-        self.buytime =0
+        self.buytime = 0
 
         try:
             self.Telepot_engine = Telepot_engine()
@@ -51,7 +49,6 @@ class log_strategy(object):
         # get market data and log return!
         self.stream.updateHistory()
 
-        # NEW!!!
         # find first relevant Coins which fulfil VOL criteria, then check for drop in log return
         volList = []
         for loc, coin in enumerate(self.stream.BTC_PAIRS):
@@ -59,7 +56,7 @@ class log_strategy(object):
                 volList.append(coin)
 
         # check for recent peaks in the history
-        thisMaxDrop, thisMaxDropCoin ,thisMaxVolume = self.peak_check( thisList=volList)
+        thisMaxDrop, thisMaxDropCoin ,thisMaxVolume = self.peak_check(thisList=volList)
 
         print('MaxDrop:', thisMaxDrop)
         print('Coin: ',thisMaxDropCoin)
@@ -67,9 +64,10 @@ class log_strategy(object):
         print('\n')
 
         #######################################
-        # check the criteria required to buy
+        # check the criteria required to buy, these are:
+        # drop is bigger than criteria, base volume, broker is not working, price did not drop to 0 (e.g. database error)
         if thisMaxDrop < self.minDrop and thisMaxVolume>self.minVolume and self.Broker.asset_status is False \
-                and self.Broker.get_broker_status() is False:
+                and self.Broker.get_broker_status() is False and self.isNotNull(thisCoin=thisMaxDropCoin):
             # buys if we are short and criteria is fulfilled
 
             # hand over the coin pair
@@ -128,7 +126,6 @@ class log_strategy(object):
                     invest = self.Broker.balance_df['BTC'].iloc[-1]
                     self.Telepot_engine.sendMsg(coin=self.Broker.pair, investment=str(round(invest,6)),
                                                 price=str(round(self.Broker.lastsell,6)), kind='EXIT')
-
             else:
                 self.Broker.idle()
         else:
@@ -144,6 +141,13 @@ class log_strategy(object):
             newList.remove(thisMaxDropCoin)
             return self.peak_check(thisList=newList)
         else:
-            # print(log_return[maxDropCoin].iloc[(i-60):i].max())
             return thisMaxDrop, thisMaxDropCoin, thisMaxVolume
 
+
+    def isNotNull(self,thisCoin):
+        # checks if the current price is not = 0
+        # e.g., due to a bug in the database...
+        if self.stream.volumeHistory[thisCoin].iloc[-1] > 0:
+            return True
+        else:
+            return False
