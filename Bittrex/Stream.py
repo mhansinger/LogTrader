@@ -41,7 +41,7 @@ class bittrexStream(object):
         ask = []
 
         # write the first line for the histor
-        for idx, pair in enumerate(self.BTC_PAIRS):
+        for idx in enumerate(self.BTC_PAIRS):
             data_coin = data[idx]
             price.append(float(data_coin['Last']))
             volume.append(float(data_coin['BaseVolume']))
@@ -82,7 +82,13 @@ class bittrexStream(object):
         volume = []
         bid = []
         ask = []
-        for idx, pair in enumerate(self.BTC_PAIRS):
+        # check the index list
+        index_list = []
+        for i in range(0,len(data)):
+            if data[i]['MarketName'] in self.BTC_PAIRS:
+                index_list.append(i)
+
+        for idx in index_list:
             try:
                 data_coin = data[idx]
                 price.append(float(data_coin['Last']))
