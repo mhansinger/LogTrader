@@ -84,9 +84,12 @@ class bittrexStream(object):
         ask = []
         # check the index list
         index_list = []
+        id_count = 0
         for i in range(0,len(data)):
-            if data[i]['MarketName'] in self.BTC_PAIRS:
-                index_list.append(i)
+            if id_count< len(self.BTC_PAIRS):
+                if data[i]['MarketName'] in self.BTC_PAIRS:
+                    index_list.append(i)
+                    id_count += 1
 
         for idx in index_list:
             try:

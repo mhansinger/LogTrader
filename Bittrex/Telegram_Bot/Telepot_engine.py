@@ -59,9 +59,9 @@ class Telepot_engine(object):
         for user in self.users:
             try:
                 self.bot.sendMessage(user,emojify('RESTART :rocket:'))
-                #self.bot.sendPhoto(user,'http://assets.nydailynews.com/polopoly_fs/1.2930801.1483288897!/'+
-                                        #'img/httpImage/image.jpg_gen/derivatives/article_750/germany-obit-milli-vanilli.jpg')
-                self.bot.sendPhoto('https://video-images.vice.com/articles/5a7a170b6b5ab64fda5f0485/lede/1517952454386-DSC_0206.jpeg')
+                self.bot.sendPhoto(user,'http://assets.nydailynews.com/polopoly_fs/1.2930801.1483288897!/'+
+                                        'img/httpImage/image.jpg_gen/derivatives/article_750/germany-obit-milli-vanilli.jpg')
+                #self.bot.sendPhoto('https://video-images.vice.com/articles/5a7a170b6b5ab64fda5f0485/lede/1517952454386-DSC_0206.jpeg')
             except telepot.exception.BotWasBlockedError:
                 self.users.remove(user)
 
