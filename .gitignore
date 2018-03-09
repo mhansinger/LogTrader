@@ -4,6 +4,8 @@
 
 *key*
 
+*KEY*
+
 TOKEN*
 
 TOKEN_key.py
@@ -13,5 +15,7 @@ kraken.key
 *.txt
 
 users_bot.txt
+
+BITTREX_*
 
 __pycache__

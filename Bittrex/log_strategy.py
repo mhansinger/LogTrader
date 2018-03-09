@@ -43,9 +43,11 @@ class log_strategy(object):
         # IMPORTANT: Broker muss initialisiert werden!
         self.Broker.initialize()
 
+    #######################################
+    # this is the core module of the trader
+    #######################################
     def marketScanner(self):
-        # this is the core module of the trader
-        #######################################
+
         # get market data and log return!
         self.stream.updateHistory()
 
@@ -151,3 +153,8 @@ class log_strategy(object):
             return True
         else:
             return False
+
+    # should contain a method to check for open orders... e.g.:
+    #def orderCheck(self):
+    #    orders = self.Broker.openOrders()
+    #    ....

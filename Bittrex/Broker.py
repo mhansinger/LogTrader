@@ -109,7 +109,6 @@ class Broker_base(ABC):
     def get_asset2_balance(self):
         raise NotImplementedError("Please Implement this method")
 
-    #@abstractmethod
     def asset_check(self):
         # checks the assets on our account and sets the asset_status
         asset1 = self.get_asset1_balance()
@@ -1587,6 +1586,221 @@ class Broker_virtual_Bittrex(Broker_base):
     def asset_check(self):
         # from abstract one
         print('Not implemented in virtual...')
+
+    def check_order(self,id):
+        # from abstract one
+        print('Not implemented in virtual...')
+
+
+###########################################################
+class Broker_live_Bittrex(Broker_base):
+    # this class is for dry run without conection to the exchange
+    #
+    def __init__(self, myinput, url='https://bittrex.com/api/v1.1/public/getmarketsummaries'):
+        super().__init__(myinput)
+        self.url = url
+
+        self.balance_all = []
+
+        self.__key = None
+        # load in the bittrex keys
+        try:
+            from BITTREX_KEY import API_KEY
+            self.__key = API_KEY
+        except:
+            print('No API Key found!')
+
+        self.pair = self.asset2+'-'+self.asset1
+        print('This is the live broker for bittrex.')
+        print('Pairs are written as: ',self.pair)
+        print(' ')
+
+    def initialize(self):
+        #check what is on our account
+        self.asset_check()
+
+        # checks if there aready exists a balance sheet as .csv
+        if (os.path.exists('Coins_balance.csv')):
+            print('Coins_balance.csv exists \n')
+            old_df = pd.read_csv('Coins_balance.csv')
+            old_df = old_df.drop('Unnamed: 0',1)
+            self.column_names = ['Time stamp', self.asset2, 'Altcoin shares', 'Altcoin market', 'Bid', 'Ask',
+                                 'Pair','Order_Id']
+            self.balance_df = old_df
+        else:
+            #sets up a new, empty data frame for the balance
+            self.column_names = ['Time stamp', self.asset2, 'Altcoin shares', 'Altcoin market', 'Bid', 'Ask',
+                                 'Pair','Order_Id']
+            self.balance_df = pd.DataFrame([np.zeros(len(self.column_names))], columns=self.column_names)
+            self.balance_df['Time stamp'] = self.getTime()
+            self.balance_df[self.asset2] = self.get_asset2_balance()    # this is the base currency!
+            self.balance_df['Altcoin market'] = self.market_price()
+            self.balance_df['Bid'] = self.asset_market_bid()
+            self.balance_df['Ask'] = self.asset_market_ask()
+            self.balance_df['Pair'] = self.pair
+            self.balance_df['Order_Id'] = '-'
+        #print(self.balance_df)
+
+    # different from base clase
+    def writeCSV(self,df):
+        # write data to csv
+        filename = 'Coins_balance.csv'
+        pd.DataFrame.to_csv(df,filename)
+
+    def buy_order(self):
+        self.broker_status = True
+
+        if self.asset_status is False:
+            # this only for virtual
+            try:
+                balance_np = np.array(self.balance_df.tail())
+            except AttributeError:
+                print('Broker muss noch initialisiert werden!')
+
+            current_base_funds = self.balance_df[self.asset2].iloc[-1] * (1.-1e-9)
+            current_costs = current_base_funds * self.fee
+
+            asset_ask = self.asset_market_ask()
+
+            new_shares = (current_base_funds - current_costs) / asset_ask
+            #new_XETH = new_shares * asset_ask
+            new_base_fund = self.balance_df[self.asset2].iloc[-1] - (current_base_funds)
+
+            # update time
+            time = self.getTime()
+
+            balance_update_vec = [[time, new_base_fund, new_shares,  self.market_price(), self.asset_market_bid(),self.asset_market_ask(),self.pair ]]
+            balance_update_df = pd.DataFrame(balance_update_vec, columns=self.column_names)
+            self.balance_df = self.balance_df.append(balance_update_df)
+
+            # write as csv file
+            self.writeCSV(self.balance_df)
+            print(' ')
+            print(balance_update_df)
+            print(' ')
+
+            self.lastbuy=asset_ask
+
+            self.asset_status = True
+
+        else:
+            print('No money to buy coins')
+
+        self.broker_status = False
+
+
+    def sell_order(self):
+        self.broker_status = True
+
+        if self.asset_status is True:
+            # this only for virtual
+            try:
+                balance_np = np.array(self.balance_df.tail())
+            except AttributeError:
+                print('Broker muss noch initialisiert werden!')
+
+            asset_bid = self.asset_market_bid()
+            current_shares = self.balance_df['Altcoin shares'].iloc[-1]*(1.-1e-9) #balance_np[-1, 3] * 0.999999
+            current_costs = current_shares * self.fee
+
+            new_base_fund = (current_shares- current_costs) * asset_bid
+
+            new_shares = self.balance_df['Altcoin shares'].iloc[-1] - current_shares  # --> sollte gegen null gehen
+            #new_XETH = new_shares * asset_bid
+
+            # update time
+            time = self.getTime()
+
+            balance_update_vec = [[time, new_base_fund, new_shares, self.market_price(), self.asset_market_bid(),self.asset_market_ask(),self.pair]]
+            balance_update_df = pd.DataFrame(balance_update_vec, columns=self.column_names)
+            self.balance_df = self.balance_df.append(balance_update_df)
+
+            # write as csv file
+            self.writeCSV(self.balance_df)
+            print(balance_update_df)
+            print(' ')
+
+            self.lastsell = asset_bid
+            self.asset_status = False
+
+        else:
+            print('Nothing to sell')
+
+        self.broker_status = False
+
+
+    def idle(self):
+        self.broker_status = True
+        try:
+            balance_np = np.array(self.balance_df.tail())
+        except AttributeError:
+            print('Broker muss noch initialisiert werden!')
+        #
+        if self.asset_status is True:
+            market_price = self.asset_market_ask()
+        elif self.asset_status is False:
+            market_price = self.asset_market_bid()
+        #
+        new_shares = self.balance_df['Altcoin shares'].iloc[-1]
+
+        new_base_fund = self.balance_df[self.asset2].iloc[-1] #balance_np[-1,2]
+        #
+        # update time
+        time = self.getTime()
+        #
+        # old is same as new
+        balance_update_vec = [[time, new_base_fund, new_shares, self.market_price(), self.asset_market_bid(),self.asset_market_ask(),self.pair]]
+        balance_update_df = pd.DataFrame(balance_update_vec, columns=self.column_names)
+        self.balance_df = self.balance_df.append(balance_update_df)
+
+        # write as csv file
+        self.writeCSV(self.balance_df)
+
+        self.broker_status = False
+
+    #def get_broker_status(self):
+    #    return self.broker_status
+
+    def asset_balance(self):
+        #from abstract one
+        print(self.balance_df.tail())
+
+    def asset_market_bid(self):
+        data_all = requests.get(self.url).json()
+        for i in range(len(data_all['result'])):
+            if data_all['result'][i]['MarketName'] == self.pair:
+                thisData = data_all['result'][i]
+                break
+        return round(float(thisData['Bid']), 9)
+
+    def asset_market_ask(self):
+        data_all = requests.get(self.url).json()
+        for i in range(len(data_all['result'])):
+            if data_all['result'][i]['MarketName'] == self.pair:
+                thisData = data_all['result'][i]
+                break
+        return round(float(thisData['Ask']), 9)
+
+    def market_price(self):
+        data_all = requests.get(self.url).json()
+        for i in range(len(data_all['result'])):
+            if data_all['result'][i]['MarketName'] == self.pair:
+                thisData = data_all['result'][i]
+                break
+        return round(float(thisData['Last']), 9)
+
+    # new one for this kind of trader
+    def setPair(self,pair):
+        self.pair = pair
+
+    def get_asset2_balance(self):
+        # this is for the base currency
+        base_url = 'https://bittrex.com/api/v1.1/account/getbalance?apikey=%s&currency=%s' % (self.__key,self.asset2)
+        #request data
+
+
+    def get_asset1_balance(self):
+        # this is for the current investment currency
 
     def check_order(self,id):
         # from abstract one

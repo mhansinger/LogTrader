@@ -82,14 +82,19 @@ class bittrexStream(object):
         volume = []
         bid = []
         ask = []
-        # check the index list
-        index_list = []
+        bittrex_coinlist = []
         id_count = 0
-        for i in range(0,len(data)):
-            if id_count< len(self.BTC_PAIRS):
-                if data[i]['MarketName'] in self.BTC_PAIRS:
-                    index_list.append(i)
-                    id_count += 1
+        #for i in range(0,len(data)):
+        #    if id_count< len(self.BTC_PAIRS):
+        #        if data[i]['MarketName'] in self.BTC_PAIRS:
+        #            index_list.append(i)
+        #            id_count += 1
+
+        for i in range(0, len(data)):
+            bittrex_coinlist.append(data[i]['MarketName'])
+
+        # update the index list to iterate over in the next step
+        index_list = [bittrex_coinlist.index(i) for i in bittrex_coinlist if i in self.BTC_PAIRS]
 
         for idx in index_list:
             try:
