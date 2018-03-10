@@ -88,7 +88,7 @@ class bittrexStream(object):
 
         for i in range(0, len(bittrex_data)):
             bittrex_coinlist.append(bittrex_data[i]['MarketName'])
-            
+
         # update the index list
         for coin in self.BTC_PAIRS:
             try:

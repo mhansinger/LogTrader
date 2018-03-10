@@ -98,8 +98,14 @@ class log_strategy(object):
             # --> the bid price is here important as it should be sold
             thisBidPrice = self.stream.bidHistory[self.Broker.pair].iloc[-1]
 
-            if thisBidPrice >= (1.0+self.minGain)*self.Broker.lastbuy:
+            # checks for an emergency exit
+            if thisBidPrice < (self.Broker.lastbuy * self.myinput.emergency):
+                emergencyExit = True
+            else:
+                emergencyExit = False
 
+
+            if thisBidPrice >= (1.0+self.minGain)*self.Broker.lastbuy:
                 # Order set
                 self.Broker.sell_order()
 
@@ -115,10 +121,10 @@ class log_strategy(object):
                     self.Telepot_engine.sendMsg(coin=self.Broker.pair, investment=str(round(invest,5)),
                                                 price=str(round(self.Broker.lastsell,6)), kind='SELL')
 
-            elif (thisTime-self.buytime)/60. > self.exittime:
+            elif (thisTime-self.buytime)/60. > self.exittime or emergencyExit:
                 # hand over the coin pair
                 self.Broker.sell_order()
-                print('Emergency exit!')
+                print('Stop Loss')
                 print('sold at: ', self.Broker.lastsell)
                 print('Gain: ', (self.Broker.lastsell - self.Broker.lastbuy) / self.Broker.lastsell)
                 print(' ')
