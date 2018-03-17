@@ -86,55 +86,24 @@ class bittrexStream(object):
         index_list = []
         id_count = 0
 
-        for i in range(0, len(bittrex_data)):
-            bittrex_coinlist.append(bittrex_data[i]['MarketName'])
+        # create a data dictionary and fill it with the current market data
+        coins_dict = {key: [0, 0, 0, 0] for (key) in self.BTC_PAIRS}
+        for idx, coin in enumerate(self.BTC_PAIRS):
+            for i in range(0, len(bittrex_data)):
+                coins_passed = 0
+                if coin == bittrex_data[i]['MarketName']:
+                    coins_dict[coin][0] = bittrex_data[i]['Last']
+                    coins_dict[coin][1] = bittrex_data[i]['BaseVolume']
+                    coins_dict[coin][2] = bittrex_data[i]['Ask']
+                    coins_dict[coin][3] = bittrex_data[i]['Bid']
 
-        # update the index list
+        # fill up the individual lists
         for coin in self.BTC_PAIRS:
-            try:
-                index_list.append(bittrex_coinlist.index(coin))
-            except ValueError:
-                print('Coin is not listed anymore\n')
+            price.append(float(coins_dict[coin][0]))
+            volume.append(float(coins_dict[coin][1]))
+            bid.append(float(coins_dict[coin][2]))
+            ask.append(float(coins_dict[coin][3]))
 
-        # check if new coin in bittrex data or if a coin was removed
-        if len(index_list) >= len(self.BTC_PAIRS):
-            for i, idx in enumerate(index_list):
-                data_coin = bittrex_data[idx]
-                try:
-                    # check again, if the names match
-                    assert data_coin['MarketName'] == self.BTC_PAIRS[i]
-                    price.append(float(data_coin['Last']))
-                    volume.append(float(data_coin['BaseVolume']))
-                    bid.append(float(data_coin['Bid']))
-                    ask.append(float(data_coin['Ask']))
-                except:
-                    print('Somethings wrong with the coin order')
-                    price.append(0)
-                    volume.append(0)
-                    bid.append(0)
-                    ask.append(0)
-
-        else:
-            # this is the case when our list is longer than the BTC Coin list from bittrex
-            print('\nBittrex reduced BTC pairs')
-            # use the first index as counter; this should be 0 in case of BTC, however, in case of ETH as base currency
-            # this index starts with ~200
-            count = index_list[0]
-            for i, coin in enumerate(self.BTC_PAIRS):
-                data_coin = bittrex_data[count]
-                try:
-                    # check again, if the names match
-                    assert data_coin['MarketName'] == coin
-                    price.append(float(data_coin['Last']))
-                    volume.append(float(data_coin['BaseVolume']))
-                    bid.append(float(data_coin['Bid']))
-                    ask.append(float(data_coin['Ask']))
-                except AssertionError:
-                    print('%s has been removed from Bittrex\n' % coin)
-                    price.append(0)
-                    volume.append(0)
-                    bid.append(0)
-                    ask.append(0)
 
         date = time.strftime("%m.%d.%y_%H:%M:%S", time.localtime())
         unixtime = int(time.time())

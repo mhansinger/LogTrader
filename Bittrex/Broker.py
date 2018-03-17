@@ -1793,13 +1793,12 @@ class Broker_live_Bittrex(Broker_base):
     def setPair(self,pair):
         self.pair = pair
 
-    def get_asset2_balance(self):
+   # def get_asset2_balance(self):
         # this is for the base currency
-        base_url = 'https://bittrex.com/api/v1.1/account/getbalance?apikey=%s&currency=%s' % (self.__key,self.asset2)
+   #     base_url = 'https://bittrex.com/api/v1.1/account/getbalance?apikey=%s&currency=%s' % (self.__key,self.asset2)
         #request data
 
-
-    def get_asset1_balance(self):
+   # def get_asset1_balance(self):
         # this is for the current investment currency
 
     def check_order(self,id):
