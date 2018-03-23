@@ -26,9 +26,6 @@ class log_strategy(object):
         self.block_coin = pd.DataFrame(columns=['UNIX', 'Pair'])
         self.block_coin = self.block_coin.append({'UNIX': time.time()//1, 'Coin': '-'}, ignore_index=True)
 
-        # blocking time in hours
-        self.blockingTime = 10
-
         try:
             self.Telepot_engine = Telepot_engine()
             self.Telepot_engine.alive()
@@ -73,46 +70,32 @@ class log_strategy(object):
         print('Volume: ',thisMaxVolume)
         print('\n')
 
+        #######################################
+        # check the criteria required to buy, these are:
+        # drop is bigger than criteria, base volume, broker is not working, price did not drop to 0 (e.g. database error)
+        if thisMaxDrop < self.minDrop and thisMaxVolume>self.minVolume and self.Broker.asset_status is False \
+                and self.Broker.get_broker_status() is False and self.isNotNull(thisCoin=thisMaxDropCoin):
+            # buys if we are short and criteria is fulfilled
 
-        # this is a new approach
-        if self.Broker.asset_status is False and self.Broker.get_broker_status() is False and \
-                self.isNotNull(thisCoin=thisMaxDropCoin):
+            # hand over the coin pair
+            self.Broker.setPair(thisMaxDropCoin)
 
-            # update the block_coin list and remove all the expired coins
-            delta = time.time() - 60*self.blockingTime
-            self.block_coin = self.block_coin[self.block_coin.UNIX > delta]
+            # Order set
+            self.Broker.buy_order()
 
-            # check for bad coins and run again the peak check
-            if thisMaxDropCoin in self.block_coin:
-                thisMaxDrop, thisMaxDropCoin, thisMaxVolume = self.removeBadCoin(thisMaxDropCoin, volList)
+            self.buytime = int(time.time())
+            # store the coin we bought
+            print('go long')
+            print('Buy: ',self.Broker.pair)
+            print('log Return: ', thisMaxDrop)
+            print('bought in at: ', self.Broker.lastbuy)
+            print(' ')
 
-
-            #######################################
-            # check the criteria required to buy, these are:
-            # drop is bigger than criteria, base volume, broker is not working, price did not drop to 0 (e.g. database error)
-            if thisMaxDrop < self.minDrop and thisMaxVolume > self.minVolume:
-                # buys if we are short and criteria is fulfilled
-
-                # hand over the coin pair
-                self.Broker.setPair(thisMaxDropCoin)
-
-                # Order set
-                self.Broker.buy_order()
-
-                self.buytime = int(time.time())
-                # store the coin we bought
-                print('go long')
-                print('Buy: ', self.Broker.pair)
-                print('log Return: ', thisMaxDrop)
-                print('bought in at: ', self.Broker.lastbuy)
-                print(' ')
-
-                # sends a telegram message
-                if self.active_engine:
-                    invest = self.Broker.balance_df['BTC'].iloc[-2]
-                    self.Telepot_engine.sendMsg(coin=self.Broker.pair, investment=str(round(invest, 5)),
-                                                price=str(round(self.Broker.lastbuy, 6)), kind='BUY')
-
+            # sends a telegram message
+            if self.active_engine:
+                invest = self.Broker.balance_df['BTC'].iloc[-2]
+                self.Telepot_engine.sendMsg(coin=self.Broker.pair, investment=str(round(invest,5)),
+                                            price= str(round(self.Broker.lastbuy,6)), kind = 'BUY')
 
         elif self.Broker.asset_status and self.Broker.get_broker_status() is False:
             thisTime = int(time.time())
@@ -156,7 +139,6 @@ class log_strategy(object):
                     invest = self.Broker.balance_df['BTC'].iloc[-1]
                     self.Telepot_engine.sendMsg(coin=self.Broker.pair, investment=str(round(invest,6)),
                                                 price=str(round(self.Broker.lastsell,6)), kind='EXIT')
-
             else:
                 self.Broker.idle()
         else:
@@ -188,17 +170,6 @@ class log_strategy(object):
             return True
         else:
             return False
-
-    def setblockingTime(self,time):
-        self.blockingTime = abs(time)
-
-    def removeBadCoin(self,thisList,thisMaxDropCoin):
-        thisList.remove(thisMaxDropCoin)
-        thisMaxDrop, thisMaxDropCoin, thisMaxVolume = self.peak_check(thisList=thisList)
-        if thisMaxDropCoin in thisList:
-            self.removeBadCoin(thisList, thisMaxDropCoin)
-        else:
-            return thisMaxDrop, thisMaxDropCoin, thisMaxVolume
 
     # should contain a method to check for open orders... e.g.:
     #def orderCheck(self):
