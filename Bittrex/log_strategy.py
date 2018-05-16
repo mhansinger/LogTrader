@@ -175,6 +175,7 @@ class log_strategy(object):
                 return self.peak_check(thisList=newList)
             else:
                 return thisMaxDrop, thisMaxDropCoin, thisMaxVolume
+
         except ValueError:
             # in case of an error return sth. which will not cause a buy order:
             print('ValueError in peak check ...')

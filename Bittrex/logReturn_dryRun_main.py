@@ -7,6 +7,7 @@ This is the main file to run the trading bot
 from __init__ import *
 from datetime import datetime
 
+from log_strategy_2203 import log_strategy_2203
 # set the input data with default values
 # adjust the windows to our time series!!!
 BITTREX_input = set_input(asset1='ETH', asset2='BTC', fee=0.0025,  investment=100.0, minDrop=-0.03, minGain=0.01, exittime=200, minVolume=500, peak=0.011)
@@ -18,7 +19,7 @@ BITTREX_broker = Broker_virtual_Bittrex(BITTREX_input)
 BITTREX_stream.updateHistory()
 BITTREX_stream.updateHistory()
 
-BITTREX_trade = log_strategy(BITTREX_input,BITTREX_broker,BITTREX_stream)
+BITTREX_trade = log_strategy_2203(BITTREX_input,BITTREX_broker,BITTREX_stream)
 
 # me sure to set correct interval according to minDrop and minGain
 def run_trader(interval=60):
