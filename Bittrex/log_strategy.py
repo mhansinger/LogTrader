@@ -193,6 +193,9 @@ class log_strategy(object):
     def setblockingTime(self,time):
         self.blockingTime = abs(time)
 
+    def getblockingTime(self):
+        print(self.blockingTime)
+
     def removeBadCoin(self,thisList,thisMaxDropCoin):
         thisList.remove(thisMaxDropCoin)
         thisMaxDrop, thisMaxDropCoin, thisMaxVolume = self.peak_check(thisList=thisList)
