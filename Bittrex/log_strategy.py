@@ -23,7 +23,7 @@ class log_strategy(object):
         self.myinput = myinput      # object, to be instantialized outside
         self.buytime = 0
 
-        self.medianVolume = None
+        self.meanVolume = None
 
         # this is the list where all temporary BAD coins are stored for temporary blockage
         self.block_coin = pd.DataFrame(columns=['UNIX', 'Pair'])
@@ -65,7 +65,7 @@ class log_strategy(object):
         # get market data and log return!
         self.stream.updateHistory()
 
-        # check if the traded volumes are high enough, if not replace with median of
+        # check if the traded volumes are high enough, if not replace with mean of
         # currently traded volume
         self.getcoinVolume()
 
@@ -199,14 +199,14 @@ class log_strategy(object):
     def getcoinVolume(self):
         # this method computes the current max. coin volume
         # based on the currently traded volumes of all coins
-        # currently computes the median of the volume
-        median_list = []
+        # currently computes the mean of the volume
+        mean_list = []
         for coin in self.stream.BTC_PAIRS:
-            median_list.append(self.stream.volumeHistory[coin].iloc[-1])
+            mean_list.append(self.stream.volumeHistory[coin].iloc[-1])
 
-        self.medianVolume=np.median(median_list)
-        if self.setVolume > self.medianVolume:
-            self.minVolume = self.medianVolume
+        self.meanVolume=np.mean(mean_list)
+        if self.setVolume > self.meanVolume:
+            self.minVolume = self.meanVolume
         else:
             self.minVolume = self.setVolume
 
@@ -238,5 +238,6 @@ class log_strategy(object):
     #def orderCheck(self):
     #    orders = self.Broker.openOrders()
     #    ....
+
 
 
