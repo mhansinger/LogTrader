@@ -27,6 +27,8 @@ class log_strategy(object):
         self.block_coin = self.block_coin.append({'UNIX': time.time()//1, 'Coin': '-'}, ignore_index=True)
 
         # blocking time in hours
+        #!!!!!!!!!!!!
+        # this is yet hard coded
         self.blockingTime = 10
 
         try:
@@ -151,7 +153,7 @@ class log_strategy(object):
                 print('Gain: ', (self.Broker.lastsell - self.Broker.lastbuy) / self.Broker.lastsell)
                 print(' ')
 
-                # sends a telegram message
+                # sends a telegram message if active
                 if self.active_engine:
                     invest = self.Broker.balance_df['BTC'].iloc[-1]
                     self.Telepot_engine.sendMsg(coin=self.Broker.pair, investment=str(round(invest,6)),
@@ -163,23 +165,29 @@ class log_strategy(object):
             self.Broker.idle()
 
     def peak_check(self, thisList):
-        try:
-            thisMaxDrop = self.stream.logReturnHistory[thisList].iloc[-1].min()
-            thisMaxDropCoin = self.stream.logReturnHistory[thisList].iloc[-1].idxmin()
-            thisMaxVolume = self.stream.volumeHistory[thisMaxDropCoin].iloc[-1]
-            if self.stream.logReturnHistory[thisMaxDropCoin].iloc[-10:-1].max() > self.peak \
-                    and thisMaxDrop < self.minDrop:
-                # remove the 'bad' coin and run again the check (recursive)
-                newList = copy.copy(thisList)
-                newList.remove(thisMaxDropCoin)
-                return self.peak_check(thisList=newList)
-            else:
-                return thisMaxDrop, thisMaxDropCoin, thisMaxVolume
-
-        except ValueError:
-            # in case of an error return sth. which will not cause a buy order:
-            print('ValueError in peak check ...')
+        # checks for the peaks in the history of coin data
+        if thisList == []:
+            print('List is empty, no coinvolume is over: ',self.peak)
+            print('Return default')
             return 0.0, 'BTC-ETH', 100
+        else:
+            try:
+                thisMaxDrop = self.stream.logReturnHistory[thisList].iloc[-1].min()
+                thisMaxDropCoin = self.stream.logReturnHistory[thisList].iloc[-1].idxmin()
+                thisMaxVolume = self.stream.volumeHistory[thisMaxDropCoin].iloc[-1]
+                if self.stream.logReturnHistory[thisMaxDropCoin].iloc[-10:-1].max() > self.peak \
+                        and thisMaxDrop < self.minDrop:
+                    # remove the 'bad' coin and run again the check (recursive)
+                    newList = copy.copy(thisList)
+                    newList.remove(thisMaxDropCoin)
+                    return self.peak_check(thisList=newList)
+                else:
+                    return thisMaxDrop, thisMaxDropCoin, thisMaxVolume
+
+            except ValueError:
+                # in case of an error return sth. which will not cause a buy order:
+                print('ValueError in peak check ...')
+                return 0.0, 'BTC-ETH', 100
 
 
     def isNotNull(self,thisCoin):
@@ -191,9 +199,11 @@ class log_strategy(object):
             return False
 
     def setblockingTime(self,time):
+        # set the blocking time
         self.blockingTime = abs(time)
 
     def getblockingTime(self):
+        # return the blocking time
         print(self.blockingTime)
 
     def removeBadCoin(self,thisList,thisMaxDropCoin):
@@ -208,3 +218,12 @@ class log_strategy(object):
     #def orderCheck(self):
     #    orders = self.Broker.openOrders()
     #    ....
+
+
+        volList = []
+        for loc, coin in enumerate(BITTREX_trade.stream.BTC_PAIRS):
+            print(BITTREX_trade.stream.priceHistory[coin].iloc[-1])
+            print(BITTREX_trade.stream.volumeHistory[coin].iloc[-1])
+            if BITTREX_trade.stream.volumeHistory[coin].iloc[-1] > BITTREX_trade.minVolume and BITTREX_trade.stream.priceHistory[coin].iloc[-1] > 0.0:
+                volList.append(coin)
+                print(coin)
