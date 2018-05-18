@@ -207,6 +207,8 @@ class log_strategy(object):
         self.meanVolume=np.mean(mean_list)
         if self.setVolume > self.meanVolume:
             self.minVolume = self.meanVolume
+        elif self.meanVolume < 0.1* self.setVolume:
+            self.minVolume = self.setVolume
         else:
             self.minVolume = self.setVolume
 
