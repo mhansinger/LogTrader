@@ -2,6 +2,7 @@
 import time
 import copy
 import pandas as pd
+import numpy as np
 try:
     from Telegram_Bot.Telepot_engine import Telepot_engine
 except:
@@ -21,6 +22,8 @@ class log_strategy(object):
         self.Broker = broker        # object, to be instantialized outside
         self.myinput = myinput      # object, to be instantialized outside
         self.buytime = 0
+
+        self.medianVolume = None
 
         # this is the list where all temporary BAD coins are stored for temporary blockage
         self.block_coin = pd.DataFrame(columns=['UNIX', 'Pair'])
@@ -45,6 +48,7 @@ class log_strategy(object):
             self.minGain = myinput.minGain
             self.exittime = myinput.exittime
             self.minVolume = myinput.minVolume
+            self.setVolume = myinput.minVolume
             self.peak = myinput.peak
 
         except:
@@ -60,6 +64,10 @@ class log_strategy(object):
 
         # get market data and log return!
         self.stream.updateHistory()
+
+        # check if the traded volumes are high enough, if not replace with median of
+        # currently traded volume
+        self.getcoinVolume()
 
         # find first relevant Coins which fulfil VOL criteria, then check for drop in log return
         volList = []
@@ -167,8 +175,7 @@ class log_strategy(object):
     def peak_check(self, thisList):
         # checks for the peaks in the history of coin data
         if thisList == []:
-            print('List is empty, no coinvolume is over: ',self.peak)
-            print('Return default')
+            print('List is empty, return default')
             return 0.0, 'BTC-ETH', 100
         else:
             try:
@@ -189,6 +196,19 @@ class log_strategy(object):
                 print('ValueError in peak check ...')
                 return 0.0, 'BTC-ETH', 100
 
+    def getcoinVolume(self):
+        # this method computes the current max. coin volume
+        # based on the currently traded volumes of all coins
+        # currently computes the median of the volume
+        median_list = []
+        for coin in self.stream.BTC_PAIRS:
+            median_list.append(self.stream.volumeHistory[coin].iloc[-1])
+
+        self.medianVolume=np.median(median_list)
+        if self.setVolume > self.medianVolume:
+            self.minVolume = self.medianVolume
+        else:
+            self.minVolume = self.setVolume
 
     def isNotNull(self,thisCoin):
         # checks if the current price is not = 0
