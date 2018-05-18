@@ -220,10 +220,3 @@ class log_strategy(object):
     #    ....
 
 
-        volList = []
-        for loc, coin in enumerate(BITTREX_trade.stream.BTC_PAIRS):
-            print(BITTREX_trade.stream.priceHistory[coin].iloc[-1])
-            print(BITTREX_trade.stream.volumeHistory[coin].iloc[-1])
-            if BITTREX_trade.stream.volumeHistory[coin].iloc[-1] > BITTREX_trade.minVolume and BITTREX_trade.stream.priceHistory[coin].iloc[-1] > 0.0:
-                volList.append(coin)
-                print(coin)
