@@ -103,10 +103,10 @@ class log_strategy(object):
             if thisMaxDrop < self.minDrop and thisMaxVolume > self.minVolume:
                 # buys if we are short and criteria is fulfilled
 
-                # hand over the coin pair
+                # hand over the coin pair which you want to buy
                 self.Broker.setPair(thisMaxDropCoin)
 
-                # Order set
+                # tell the broker to buy
                 self.Broker.buy_order()
 
                 self.buytime = int(time.time())
@@ -117,11 +117,9 @@ class log_strategy(object):
                 print('bought in at: ', self.Broker.lastbuy)
                 print(' ')
 
-                # sends a telegram message
+                # sends a telegram message if active
                 if self.active_engine:
-                    invest = self.Broker.balance_df['BTC'].iloc[-2]
-                    self.Telepot_engine.sendMsg(coin=self.Broker.pair, investment=str(round(invest, 5)),
-                                                price=str(round(self.Broker.lastbuy, 6)), kind='BUY')
+                    self.sendTelegram(kind='BUY')
 
 
         elif self.Broker.asset_status and self.Broker.get_broker_status() is False:
@@ -149,9 +147,7 @@ class log_strategy(object):
 
                 # sends a telegram message
                 if self.active_engine:
-                    invest = self.Broker.balance_df['BTC'].iloc[-1]
-                    self.Telepot_engine.sendMsg(coin=self.Broker.pair, investment=str(round(invest,5)),
-                                                price=str(round(self.Broker.lastsell,6)), kind='SELL')
+                    self.sendTelegram(kind='SELL')
 
             elif (thisTime-self.buytime)/60. > self.exittime or emergencyExit:
                 # hand over the coin pair
@@ -163,15 +159,17 @@ class log_strategy(object):
 
                 # sends a telegram message if active
                 if self.active_engine:
-                    invest = self.Broker.balance_df['BTC'].iloc[-1]
-                    self.Telepot_engine.sendMsg(coin=self.Broker.pair, investment=str(round(invest,6)),
-                                                price=str(round(self.Broker.lastsell,6)), kind='EXIT')
+                    self.sendTelegram(kind='EXIT')
 
             else:
                 self.Broker.idle()
         else:
             self.Broker.idle()
 
+
+    ###############################################
+    # these are the helper functions
+    ###############################################
     def peak_check(self, thisList):
         # checks for the peaks in the history of coin data
         if thisList == []:
@@ -208,7 +206,7 @@ class log_strategy(object):
         if self.setVolume > self.meanVolume:
             self.minVolume = self.meanVolume
         elif self.meanVolume < 0.1* self.setVolume:
-            self.minVolume = self.setVolume
+            self.minVolume = 0.3*self.setVolume
         else:
             self.minVolume = self.setVolume
 
@@ -229,12 +227,20 @@ class log_strategy(object):
         print(self.blockingTime)
 
     def removeBadCoin(self,thisList,thisMaxDropCoin):
+        # this removes the bad coins from possible buy list
         thisList.remove(thisMaxDropCoin)
         thisMaxDrop, thisMaxDropCoin, thisMaxVolume = self.peak_check(thisList=thisList)
         if thisMaxDropCoin in thisList:
             self.removeBadCoin(thisList, thisMaxDropCoin)
         else:
             return thisMaxDrop, thisMaxDropCoin, thisMaxVolume
+
+    def sendTelegram(self,kind):
+        # tells telegram engine to send a message
+        invest = self.Broker.balance_df['BTC'].iloc[-2]
+        self.Telepot_engine.sendMsg(coin=self.Broker.pair, investment=str(round(invest, 5)),
+                                    price=str(round(self.Broker.lastbuy, 6)), kind=kind)
+
 
     # should contain a method to check for open orders... e.g.:
     #def orderCheck(self):
